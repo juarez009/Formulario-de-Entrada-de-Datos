@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Prestaciones Laborales - El Salvador</title>
+<style>
+    body{font-family:Arial,sans-serif;background:#eef2f5;margin:0;color:#222}
+    .encabezado{background:#16466f;color:white;text-align:center;padding:25px}
+    .contenedor{width:90%;max-width:950px;margin:25px auto}
+    .caja{background:white;padding:20px;margin-bottom:20px;border-radius:10px;box-shadow:0 2px 8px #ccc}
+    h2{color:#16466f;margin-top:0}
+    .fila{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+    label{display:block;font-weight:bold;margin-bottom:6px}
+    input,select{width:100%;padding:10px;border:1px solid #bbb;border-radius:6px;font-size:15px;box-sizing:border-box}
+    .campo{margin-bottom:12px}
+    .boton{background:#16466f;color:white;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;font-size:15px;margin-right:8px}
+    .boton:hover{background:#0f3453}
+    .limpiar{background:#777}
+    #resultados{display:none}
+    .resultado{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid #ddd;gap:15px}
+    .resultado small{display:block;color:#666;font-weight:normal;margin-top:4px}
+    .total{background:#16466f;color:white;padding:16px;margin-top:15px;border-radius:7px;display:flex;justify-content:space-between;font-size:20px;font-weight:bold}
+    .nota{font-size:13px;color:#666;line-height:1.4}
+    .legal{background:#f4f8fb;border-left:4px solid #16466f;padding:12px;margin-top:15px;font-size:13px;line-height:1.5}
+    .advertencia{background:#fff8e1;border-left:4px solid #d39e00;padding:12px;margin-bottom:15px;font-size:13px;line-height:1.5}
+    .subtitulo{color:#555;margin-top:-8px}
+    @media(max-width:650px){.fila{grid-template-columns:1fr}.resultado{flex-direction:column}.resultado strong{align-self:flex-end}}
+</style>
+</head>
+<body>
+
+<div class="encabezado">
+    <h1>Calculadora de Prestaciones Laborales</h1>
+    <p>Basada en el Código de Trabajo de El Salvador</p>
+</div>
+
+<div class="contenedor">
+
+    <div class="advertencia">
+        <strong>Importante:</strong> esta calculadora estima prestaciones mínimas bajo el régimen general
+        del Código de Trabajo. No sustituye una liquidación profesional ni contempla salarios pendientes,
+        descuentos, AFP/ISSS, contratos especiales, prestaciones pactadas superiores a la ley u otros conceptos.
+    </div>
+
+    <div class="caja">
+        <h2>1. Datos del trabajador</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="salario">Salario mensual ($)</label>
+                <input type="number" id="salario" min="0" step="0.01" placeholder="Ejemplo: 500">
+            </div>
+
+            <div class="campo">
+                <label for="sector">Sector económico</label>
+                <select id="sector">
+                    <option value="13.440">Comercio / Servicios / Industria - $13.440 diarios</option>
+                    <option value="13.227">Maquila textil y confección - $13.227 diarios</option>
+                    <option value="10.035">Agrícola / Beneficios de café - $10.035 diarios</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="fechaIngreso">Fecha de ingreso</label>
+                <input type="date" id="fechaIngreso">
+            </div>
+
+            <div class="campo">
+                <label for="fechaSalida">Fecha de terminación</label>
+                <input type="date" id="fechaSalida">
+            </div>
+        </div>
+        <div class="nota">
+            Las fechas permiten calcular proporcionalmente vacaciones y aguinaldo con mayor precisión.
+            El salario mensual se convierte a salario diario usando 30 días.
+        </div>
+    </div>
+
+    <div class="caja">
+        <h2>2. Finalización del contrato</h2>
+        <div class="campo">
+            <label for="tipoFinalizacion">Tipo de cierre</label>
+            <select id="tipoFinalizacion">
+                <option value="despido">Despido injustificado</option>
+                <option value="renuncia">Renuncia voluntaria</option>
+            </select>
+        </div>
+        <div class="nota">
+            Para la indemnización del Art. 58 se aplica el límite de cuatro veces el salario mínimo
+            diario legal vigente. La renuncia voluntaria se muestra sin indemnización por despido
+            injustificado; la prestación por renuncia voluntaria bajo su legislación especial no se
+            incorpora automáticamente en esta versión.
+        </div>
+    </div>
+
+    <div class="caja">
+        <h2>3. Horas y días especiales</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="horasDia">Horas extras diurnas</label>
+                <input type="number" id="horasDia" min="0" step="0.01" value="0">
+            </div>
+
+            <div class="campo">
+                <label for="horasNoche">Horas extras nocturnas</label>
+                <input type="number" id="horasNoche" min="0" step="0.01" value="0">
+                <div class="nota">La hora nocturna considera el 25% adicional de nocturnidad.</div>
+            </div>
+
+            <div class="campo">
+                <label for="diasAsueto">Días de asueto trabajados</label>
+                <input type="number" id="diasAsueto" min="0" step="1" value="0">
+            </div>
+
+            <div class="campo">
+                <label for="diasDescanso">Días de descanso semanal trabajados</label>
+                <input type="number" id="diasDescanso" min="0" step="1" value="0">
+            </div>
+        </div>
+
+        <br>
+        <button class="boton" onclick="calcular()">Calcular</button>
+        <button class="boton limpiar" onclick="borrarDatos()">Limpiar</button>
+    </div>
+
+    <div class="caja" id="resultados">
+        <h2>Panel de Resultados Automáticos</h2>
+        <p class="subtitulo">Desglose de la liquidación</p>
+
+        <div class="resultado">
+            <div>
+                <span>Vacación proporcional acumulada</span>
+                <small>15 días + 30%, proporcional al período trabajado.</small>
+            </div>
+            <strong id="resultadoVacacion">$0.00</strong>
+        </div>
+
+        <div class="resultado">
+            <div>
+                <span>Aguinaldo proporcional acumulado</span>
+                <small>Según antigüedad y período correspondiente.</small>
+            </div>
+            <strong id="resultadoAguinaldo">$0.00</strong>
+        </div>
+
+        <div class="resultado">
+            <div>
+                <span>Indemnización / compensación económica</span>
+                <small id="detalleIndemnizacion">Despido injustificado: 30 días por año, proporcional por fracción, con tope legal.</small>
+            </div>
+            <strong id="resultadoIndemnizacion">$0.00</strong>
+        </div>
+
+        <div class="resultado">
+            <div>
+                <span>Subtotal por horas extras diurnas</span>
+                <small>Salario hora + 100% de recargo.</small>
+            </div>
+            <strong id="resultadoHorasDia">$0.00</strong>
+        </div>
+
+        <div class="resultado">
+            <div>
+                <span>Subtotal por horas extras nocturnas</span>
+                <small>Salario hora + 100% de recargo + 25% de nocturnidad.</small>
+            </div>
+            <strong id="resultadoHorasNoche">$0.00</strong>
+        </div>
+
+        <div class="resultado">
+            <div>
+                <span>Monto por días de asueto laborados</span>
+                <small>Salario ordinario + 100% de recargo.</small>
+            </div>
+            <strong id="resultadoAsueto">$0.00</strong>
+        </div>
+
+        <div class="resultado">
+            <div>
+                <span>Monto por días de descanso semanal laborados</span>
+                <small>Salario ordinario doble. El descanso compensatorio no se monetiza aquí.</small>
+            </div>
+            <strong id="resultadoDescanso">$0.00</strong>
+        </div>
+
+        <div class="total">
+            <span>Monto total de la liquidación</span>
+            <span id="resultadoTotal">$0.00</span>
+        </div>
+
+        <div class="legal">
+            <strong>Base normativa utilizada:</strong>
+            Arts. 58, 89, 92, 169, 177, 187, 192 y 196-199 del Código de Trabajo de El Salvador,
+            según corresponda a cada concepto.
+        </div>
+    </div>
+</div>
+
+<script>
+function dinero(numero) {
+    return numero.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD"
+    });
+}
+
+function obtenerNumero(id) {
+    const valor = parseFloat(document.getElementById(id).value);
+    return isNaN(valor) ? 0 : valor;
+}
+
+function obtenerFecha(id) {
+    const valor = document.getElementById(id).value;
+    return valor ? new Date(valor + "T00:00:00") : null;
+}
+
+function diasEntre(inicio, fin) {
+    const ms = 1000 * 60 * 60 * 24;
+    return Math.max(0, Math.floor((fin - inicio) / ms));
+}
+
+function añosCompletosYFraccion(inicio, fin) {
+    let años = fin.getFullYear() - inicio.getFullYear();
+    const aniversario = new Date(inicio);
+    aniversario.setFullYear(inicio.getFullYear() + años);
+
+    if (aniversario > fin) {
+        años--;
+        aniversario.setFullYear(inicio.getFullYear() + años);
+    }
+
+    const siguiente = new Date(inicio);
+    siguiente.setFullYear(inicio.getFullYear() + años + 1);
+
+    const diasFraccion = diasEntre(aniversario, fin);
+    const diasAño = diasEntre(aniversario, siguiente);
+
+    return {
+        años: Math.max(0, años),
+        diasFraccion: diasFraccion,
+        diasAño: diasAño || 365
+    };
+}
+
+function calcularVacacion(salarioDiario, fechaIngreso, fechaSalida) {
+    const info = añosCompletosYFraccion(fechaIngreso, fechaSalida);
+    const aniversario = new Date(fechaIngreso);
+    aniversario.setFullYear(fechaIngreso.getFullYear() + info.años);
+
+    // Art. 187: prestación proporcional. Art. 177: 15 días + 30%.
+    const prestacionAnual = salarioDiario * 15 * 1.30;
+    return prestacionAnual * (info.diasFraccion / info.diasAño);
+}
+
+function diasAguinaldoPorAntiguedad(años) {
+    if (años >= 10) return 21;
+    if (años >= 3) return 19;
+    return 15;
+}
+
+function calcularAguinaldo(salarioDiario, fechaIngreso, fechaSalida) {
+    const info = añosCompletosYFraccion(fechaIngreso, fechaSalida);
+
+    // Para el período de aguinaldo, se toma como referencia el 12 de diciembre.
+    // Si la persona ya tenía un año o más, el nuevo período inicia el 12 de diciembre
+    // anterior; si tenía menos de un año, se toma desde su ingreso.
+    const doceDicActual = new Date(fechaSalida.getFullYear(), 11, 12);
+    let inicioPeriodo;
+
+    if (fechaSalida >= doceDicActual) {
+        inicioPeriodo = doceDicActual;
+    } else {
+        inicioPeriodo = new Date(fechaSalida.getFullYear() - 1, 11, 12);
+    }
+
+    if (fechaIngreso > inicioPeriodo) {
+        inicioPeriodo = fechaIngreso;
+    }
+
+    const diasPeriodo = diasEntre(inicioPeriodo, fechaSalida);
+    const antiguedadAlCierre = añosCompletosYFraccion(fechaIngreso, fechaSalida).años;
+    const diasAguinaldo = diasAguinaldoPorAntiguedad(antiguedadAlCierre);
+
+    // Si ya transcurrió un año, se calcula proporcionalmente el período corriente.
+    return salarioDiario * diasAguinaldo * (diasPeriodo / 365);
+}
+
+function calcular() {
+    const salario = obtenerNumero("salario");
+    const fechaIngreso = obtenerFecha("fechaIngreso");
+    const fechaSalida = obtenerFecha("fechaSalida");
+    const tipo = document.getElementById("tipoFinalizacion").value;
+
+    const horasDia = obtenerNumero("horasDia");
+    const horasNoche = obtenerNumero("horasNoche");
+    const diasAsueto = obtenerNumero("diasAsueto");
+    const diasDescanso = obtenerNumero("diasDescanso");
+
+    if (salario <= 0) {
+        alert("Debe ingresar el salario mensual.");
+        return;
+    }
+
+    if (!fechaIngreso || !fechaSalida) {
+        alert("Debe ingresar la fecha de ingreso y la fecha de terminación.");
+        return;
+    }
+
+    if (fechaSalida < fechaIngreso) {
+        alert("La fecha de terminación no puede ser anterior a la fecha de ingreso.");
+        return;
+    }
+
+    const salarioDiario = salario / 30;
+    const salarioHora = salarioDiario / 8;
+
+    const salarioMinimoDiario = parseFloat(document.getElementById("sector").value);
+    const topeDiarioIndemnizacion = salarioMinimoDiario * 4;
+
+    const infoServicio = añosCompletosYFraccion(fechaIngreso, fechaSalida);
+    const tiempoServicio = infoServicio.años + (infoServicio.diasFraccion / infoServicio.diasAño);
+
+    const vacaciones = calcularVacacion(salarioDiario, fechaIngreso, fechaSalida);
+    const aguinaldo = calcularAguinaldo(salarioDiario, fechaIngreso, fechaSalida);
+
+    let indemnizacion = 0;
+
+    if (tipo === "despido") {
+        // Art. 58: 30 días de salario básico por año y proporcional por fracción.
+        // No puede utilizarse una base superior a 4 salarios mínimos diarios.
+        const salarioDiarioIndemnizable = Math.min(salarioDiario, topeDiarioIndemnizacion);
+        indemnizacion = salarioDiarioIndemnizable * 30 * tiempoServicio;
+
+        // Mínimo legal: 15 días de salario básico.
+        indemnizacion = Math.max(indemnizacion, salarioDiarioIndemnizable * 15);
+
+        document.getElementById("detalleIndemnizacion").textContent =
+            "Art. 58: 30 días por año y proporcional por fracción; base limitada a 4 salarios mínimos diarios.";
+    } else {
+        indemnizacion = 0;
+        document.getElementById("detalleIndemnizacion").textContent =
+            "Renuncia voluntaria: no se calcula indemnización por despido injustificado (Art. 58).";
+    }
+
+    // Art. 169: hora extra diurna = hora ordinaria + 100%.
+    const pagoHorasDia = salarioHora * 2 * horasDia;
+
+    // Art. 168 + criterio MTPS: hora extra nocturna = hora + 100% + 25% nocturnidad.
+    const pagoHorasNoche = salarioHora * 2.25 * horasNoche;
+
+    // Art. 192: asueto trabajado = salario ordinario + 100%.
+    const pagoAsueto = salarioDiario * 2 * diasAsueto;
+
+    // Art. 92: descanso semanal trabajado = doble salario ordinario.
+    const pagoDescanso = salarioDiario * 2 * diasDescanso;
+
+    const total =
+        vacaciones +
+        aguinaldo +
+        indemnizacion +
+        pagoHorasDia +
+        pagoHorasNoche +
+        pagoAsueto +
+        pagoDescanso;
+
+    document.getElementById("resultadoVacacion").textContent = dinero(vacaciones);
+    document.getElementById("resultadoAguinaldo").textContent = dinero(aguinaldo);
+    document.getElementById("resultadoIndemnizacion").textContent = dinero(indemnizacion);
+    document.getElementById("resultadoHorasDia").textContent = dinero(pagoHorasDia);
+    document.getElementById("resultadoHorasNoche").textContent = dinero(pagoHorasNoche);
+    document.getElementById("resultadoAsueto").textContent = dinero(pagoAsueto);
+    document.getElementById("resultadoDescanso").textContent = dinero(pagoDescanso);
+    document.getElementById("resultadoTotal").textContent = dinero(total);
+
+    document.getElementById("resultados").style.display = "block";
+}
+
+function borrarDatos() {
+    document.getElementById("salario").value = "";
+    document.getElementById("sector").value = "13.440";
+    document.getElementById("fechaIngreso").value = "";
+    document.getElementById("fechaSalida").value = "";
+    document.getElementById("tipoFinalizacion").value = "despido";
+    document.getElementById("horasDia").value = 0;
+    document.getElementById("horasNoche").value = 0;
+    document.getElementById("diasAsueto").value = 0;
+    document.getElementById("diasDescanso").value = 0;
+    document.getElementById("resultados").style.display = "none";
+}
+
+// Actualización automática del panel después del primer cálculo.
+let calculado = false;
+const campos = [
+    "salario","sector","fechaIngreso","fechaSalida","tipoFinalizacion",
+    "horasDia","horasNoche","diasAsueto","diasDescanso"
+];
+
+campos.forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+        if (calculado) calcular();
+    });
+    document.getElementById(id).addEventListener("change", () => {
+        if (calculado) calcular();
+    });
+});
+
+const calcularOriginal = calcular;
+calcular = function() {
+    calcularOriginal();
+    if (document.getElementById("resultados").style.display === "block") {
+        calculado = true;
+    }
+};
+</script>
+
+</body>
+</html>
